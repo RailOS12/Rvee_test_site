@@ -4,11 +4,28 @@ function getConversationId() {
   return parseInt(params.get('id'));
 }
 
-// Загрузить данные разговора
+// Получить ID аудиозаписи из URL
+function getAudioId() {
+  const params = new URLSearchParams(window.location.search);
+  const audioId = params.get('audioId');
+  return audioId ? parseInt(audioId) : null;
+}
+
+// Загрузить данные разговора (моковые)
 function loadConversation() {
   const id = getConversationId();
   const mockData = JSON.parse(localStorage.getItem('mockConversations') || '[]');
   return mockData.find(conv => conv.id === id);
+}
+
+// Загрузить аудиозапись
+async function loadAudioRecord(audioId) {
+  if (typeof window.AudioDB === 'undefined') {
+    console.error('AudioDB не загружен');
+    return null;
+  }
+  
+  return await window.AudioDB.get(audioId);
 }
 
 // Форматировать длительность
@@ -31,13 +48,48 @@ function formatDate(dateString) {
 }
 
 // Отрисовать транскрибацию
-function renderTranscript(conversation) {
+function renderTranscript(transcriptData) {
   const container = document.getElementById('transcriptList');
   
-  container.innerHTML = conversation.transcript.map((item, index) => {
-    const isEmployee = item.speaker === 'employee';
-    const hasScore = item.score !== null;
-    const timestamp = formatDuration(item.timestamp);
+  // Если транскрибации нет
+  if (!transcriptData || !transcriptData.length) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 20px; opacity: 0.3;">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+        </svg>
+        <h3 style="margin-bottom: 12px; font-size: 20px; color: var(--text-primary);">Транскрибация пока не загружена</h3>
+        <p style="font-size: 14px; max-width: 400px; margin: 0 auto; line-height: 1.6;">
+          Этот файл еще обрабатывается. Транскрибация разговора появится здесь автоматически после завершения обработки.
+        </p>
+        <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; max-width: 500px; margin-left: auto; margin-right: auto;">
+          <p style="font-size: 13px; margin: 0; color: var(--text-secondary);">
+            💡 <strong>Обычно обработка занимает:</strong> 5-15 минут для разговора длительностью до 10 минут
+          </p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = transcriptData.map((item, index) => {
+    const isEmployee = item.speaker === 'employee' || item.speaker === 'Рекрутер';
+    const hasScore = item.score !== null && item.score !== undefined;
+    
+    // Преобразовать время из формата "[MM:SS]" в секунды
+    let timestamp = 0;
+    if (item.t_str) {
+      // Новый формат: "[00:00]"
+      const match = item.t_str.match(/\[(\d+):(\d+)\]/);
+      if (match) {
+        timestamp = parseInt(match[1]) * 60 + parseInt(match[2]);
+      }
+    } else if (item.timestamp !== undefined) {
+      // Старый формат: timestamp в секундах
+      timestamp = item.timestamp;
+    }
+    
+    const timestampStr = formatDuration(timestamp);
     
     let scoreClass = '';
     if (hasScore) {
@@ -47,11 +99,11 @@ function renderTranscript(conversation) {
     return `
       <div class="transcript-item ${isEmployee ? 'employee' : 'candidate'}">
         <div class="transcript-meta">
-          <button class="timestamp-button" onclick="jumpToTime(${item.timestamp})" title="Перейти к моменту">
+          <button class="timestamp-button" onclick="jumpToTime(${timestamp})" title="Перейти к моменту">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
-            ${timestamp}
+            ${timestampStr}
           </button>
           <span class="speaker-name">${isEmployee ? 'Вы' : 'Кандидат'}</span>
         </div>
@@ -238,7 +290,61 @@ function goBack() {
 }
 
 // Инициализация
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', async function() {
+  const audioId = getAudioId();
+  
+  // Если это аудиозапись
+  if (audioId) {
+    const audioRecord = await loadAudioRecord(audioId);
+    
+    if (!audioRecord) {
+      alert('Аудиозапись не найдена');
+      goBack();
+      return;
+    }
+    
+    // Заполнить заголовок
+    document.getElementById('conversationTitle').textContent = audioRecord.fileName;
+    document.getElementById('conversationDate').textContent = formatDate(audioRecord.uploadDate);
+    document.getElementById('conversationDuration').textContent = formatDuration(audioRecord.duration);
+    
+    // Скрыть оценку для аудио без транскрибации
+    const scoreContainer = document.querySelector('.conversation-header-meta div:last-child');
+    if (audioRecord.transcription && audioRecord.transcription.utterances) {
+      // Есть транскрибация - вычислить среднюю оценку
+      const utterances = audioRecord.transcription.utterances;
+      const scores = utterances.filter(u => u.score !== null && u.score !== undefined).map(u => u.score);
+      
+      if (scores.length > 0) {
+        const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+        document.getElementById('conversationScore').textContent = avgScore.toFixed(1);
+        
+        const scoreElement = document.getElementById('conversationScore');
+        if (avgScore >= 8) {
+          scoreElement.style.color = 'var(--success)';
+        } else if (avgScore >= 6) {
+          scoreElement.style.color = 'var(--warning)';
+        } else {
+          scoreElement.style.color = 'var(--danger)';
+        }
+      } else {
+        scoreContainer.style.display = 'none';
+      }
+    } else {
+      scoreContainer.style.display = 'none';
+    }
+    
+    // Установить общее время
+    document.getElementById('totalTime').textContent = formatDuration(audioRecord.duration);
+    
+    // Отрисовать транскрибацию (или заглушку)
+    const transcriptData = audioRecord.transcription?.utterances || null;
+    renderTranscript(transcriptData);
+    
+    return;
+  }
+  
+  // Иначе это моковые данные
   const conversation = loadConversation();
   
   if (!conversation) {
@@ -267,7 +373,7 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('totalTime').textContent = formatDuration(conversation.duration);
   
   // Отрисовать транскрибацию
-  renderTranscript(conversation);
+  renderTranscript(conversation.transcript);
 });
 
 // Добавить стили анимаций

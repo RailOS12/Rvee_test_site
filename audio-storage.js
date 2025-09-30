@@ -179,6 +179,52 @@ async function getEmployeeAudioRecordsDB(employeeId) {
   }
 }
 
+// Обновить запись
+async function updateAudioRecordDB(id, updates) {
+  try {
+    const db = await openDatabase();
+    const transaction = db.transaction([STORE_NAME], 'readwrite');
+    const objectStore = transaction.objectStore(STORE_NAME);
+    
+    // Получаем существующую запись
+    const getRequest = objectStore.get(id);
+    
+    return new Promise((resolve, reject) => {
+      getRequest.onsuccess = () => {
+        const record = getRequest.result;
+        
+        if (!record) {
+          reject(new Error('Запись не найдена'));
+          return;
+        }
+        
+        // Обновляем поля
+        const updatedRecord = { ...record, ...updates };
+        
+        const putRequest = objectStore.put(updatedRecord);
+        
+        putRequest.onsuccess = () => {
+          console.log('✅ Запись обновлена в IndexedDB, ID:', id);
+          resolve(updatedRecord);
+        };
+        
+        putRequest.onerror = () => {
+          console.error('❌ Ошибка обновления в IndexedDB:', putRequest.error);
+          reject(putRequest.error);
+        };
+      };
+      
+      getRequest.onerror = () => {
+        console.error('❌ Ошибка получения записи:', getRequest.error);
+        reject(getRequest.error);
+      };
+    });
+  } catch (error) {
+    console.error('❌ Ошибка обновления записи:', error);
+    throw error;
+  }
+}
+
 // Экспортируем функции
 window.AudioDB = {
   save: saveAudioRecordsDB,
@@ -186,5 +232,6 @@ window.AudioDB = {
   add: addAudioRecordDB,
   delete: deleteAudioRecordDB,
   get: getAudioRecordDB,
-  getByEmployee: getEmployeeAudioRecordsDB
+  getByEmployee: getEmployeeAudioRecordsDB,
+  update: updateAudioRecordDB
 };

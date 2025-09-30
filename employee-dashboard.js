@@ -586,8 +586,12 @@ async function renderMyAudio() {
     const uploadDate = new Date(audio.uploadDate);
     const duration = Math.floor(audio.duration || 0);
     
+    // Подсчет реплик из транскрибации
+    const utterances = audio.transcription?.utterances || [];
+    const utteranceCount = utterances.length;
+    
     return `
-      <div class="conversation-item" onclick="playEmployeeAudio(${audio.id})">
+      <div class="conversation-item" onclick="viewAudioConversation(${audio.id})">
         <div class="conversation-info">
           <div class="conversation-title" style="display: flex; align-items: center; gap: 8px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -601,12 +605,13 @@ async function renderMyAudio() {
             <span>${formatDate(audio.uploadDate)}</span>
             <span>•</span>
             <span>${formatDuration(duration)}</span>
+            ${utteranceCount > 0 ? `<span>•</span><span>${utteranceCount} реплик</span>` : ''}
             ${audio.description ? `<span>•</span><span>${audio.description}</span>` : ''}
           </div>
         </div>
         <div class="conversation-arrow">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18 15 12 9 6"></path>
           </svg>
         </div>
       </div>
@@ -617,59 +622,9 @@ async function renderMyAudio() {
   container.innerHTML = audioHTML + existingHTML;
 }
 
-// Воспроизвести аудио
-async function playEmployeeAudio(audioId) {
-  if (typeof window.AudioDB === 'undefined') {
-    alert('Система аудио не загружена!');
-    return;
-  }
-  
-  const audio = await window.AudioDB.get(audioId);
-  
-  if (!audio) {
-    alert('Запись не найдена!');
-    return;
-  }
-  
-  // Создаем аудио плеер
-  const audioElement = new Audio(audio.audioData);
-  audioElement.controls = true;
-  
-  // Показываем модальное окно
-  const modal = document.createElement('div');
-  modal.className = 'modal show';
-  modal.innerHTML = `
-    <div class="modal-content" style="max-width: 600px;">
-      <div class="modal-header">
-        <h2>${audio.fileName}</h2>
-        <button class="modal-close" onclick="this.closest('.modal').remove()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-      <div style="padding: 24px;">
-        <div style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
-          Дата загрузки: ${formatDate(audio.uploadDate)}<br>
-          Длительность: ${formatDuration(audio.duration)}
-          ${audio.description ? '<br><br>' + audio.description : ''}
-        </div>
-        <div id="audioPlayerContainer"></div>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  document.getElementById('audioPlayerContainer').appendChild(audioElement);
-  audioElement.play();
-  
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      audioElement.pause();
-      modal.remove();
-    }
-  });
+// Открыть страницу просмотра разговора (аудио)
+function viewAudioConversation(audioId) {
+  window.location.href = `conversation-view.html?audioId=${audioId}`;
 }
 
 // Инициализация
