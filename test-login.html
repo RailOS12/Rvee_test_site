@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тест авторизации</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #0f0;
+    }
+    .section {
+      background: #000;
+      border: 1px solid #0f0;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    h2 { color: #0ff; }
+    button {
+      background: #0f0;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    input {
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 8px;
+      margin: 5px;
+    }
+    pre {
+      background: #111;
+      padding: 10px;
+      overflow-x: auto;
+      border-left: 3px solid #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Диагностика авторизации Call Analytics</h1>
+
+  <div class="section">
+    <h2>📋 Пользователи в localStorage</h2>
+    <button onclick="showUsers()">Показать всех пользователей</button>
+    <button onclick="clearAllData()">Очистить все данные</button>
+    <button onclick="resetDemo()">Сбросить демо-данные</button>
+    <pre id="usersOutput">Нажмите кнопку выше</pre>
+  </div>
+
+  <div class="section">
+    <h2>🔐 Тест входа</h2>
+    <div>
+      <input type="text" id="testUsername" placeholder="Логин" value="ivanov">
+      <input type="password" id="testPassword" placeholder="Пароль" value="111111">
+      <button onclick="testLogin()">Проверить вход</button>
+    </div>
+    <pre id="loginOutput">Результат появится здесь</pre>
+  </div>
+
+  <div class="section">
+    <h2>🔑 Изменить пароль</h2>
+    <div>
+      <input type="text" id="changeUsername" placeholder="Логин" value="ivanov">
+      <input type="password" id="newPassword" placeholder="Новый пароль" value="111111">
+      <button onclick="changePassword()">Изменить пароль</button>
+    </div>
+    <pre id="changeOutput">Результат появится здесь</pre>
+  </div>
+
+  <div class="section">
+    <h2>🔄 Текущая сессия</h2>
+    <button onclick="showSession()">Показать сессию</button>
+    <button onclick="clearSession()">Очистить сессию</button>
+    <pre id="sessionOutput">Нажмите кнопку выше</pre>
+  </div>
+
+  <div class="section">
+    <button onclick="goToLogin()" style="background: #0ff;">➡️ Перейти к странице входа</button>
+  </div>
+
+  <script>
+    function showUsers() {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      document.getElementById('usersOutput').textContent = JSON.stringify(users, null, 2);
+    }
+
+    function testLogin() {
+      const username = document.getElementById('testUsername').value;
+      const password = document.getElementById('testPassword').value;
+      
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.username === username && u.password === password);
+      
+      const output = document.getElementById('loginOutput');
+      
+      if (user) {
+        output.textContent = '✅ УСПЕХ! Найден пользователь:\n' + JSON.stringify(user, null, 2);
+        output.style.color = '#0f0';
+      } else {
+        const userByName = users.find(u => u.username === username);
+        if (userByName) {
+          output.textContent = '❌ ОШИБКА: Пользователь найден, но пароль неверный!\n\n' +
+            'Пользователь в базе:\n' + JSON.stringify(userByName, null, 2) +
+            '\n\nВведенный пароль: "' + password + '"\n' +
+            'Сохраненный пароль: "' + userByName.password + '"';
+          output.style.color = '#f00';
+        } else {
+          output.textContent = '❌ ОШИБКА: Пользователь с логином "' + username + '" не найден!\n\n' +
+            'Доступные пользователи:\n' + users.map(u => u.username).join(', ');
+          output.style.color = '#f00';
+        }
+      }
+    }
+
+    function changePassword() {
+      const username = document.getElementById('changeUsername').value;
+      const newPassword = document.getElementById('newPassword').value;
+      
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = users.findIndex(u => u.username === username);
+      
+      const output = document.getElementById('changeOutput');
+      
+      if (userIndex !== -1) {
+        const oldPassword = users[userIndex].password;
+        users[userIndex].password = newPassword;
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        output.textContent = '✅ Пароль изменен!\n\n' +
+          'Пользователь: ' + username + '\n' +
+          'Старый пароль: ' + oldPassword + '\n' +
+          'Новый пароль: ' + newPassword;
+        output.style.color = '#0f0';
+        
+        showUsers();
+      } else {
+        output.textContent = '❌ Пользователь не найден: ' + username;
+        output.style.color = '#f00';
+      }
+    }
+
+    function showSession() {
+      const currentUser = sessionStorage.getItem('currentUser');
+      const rememberMe = localStorage.getItem('rememberMe');
+      
+      const output = document.getElementById('sessionOutput');
+      output.textContent = 'SessionStorage:\n' + (currentUser || 'Нет данных') + '\n\n' +
+                          'RememberMe (localStorage):\n' + (rememberMe || 'Нет данных');
+    }
+
+    function clearSession() {
+      sessionStorage.clear();
+      localStorage.removeItem('rememberMe');
+      document.getElementById('sessionOutput').textContent = '✅ Сессия очищена';
+      showSession();
+    }
+
+    function clearAllData() {
+      if (confirm('Удалить ВСЕ данные из localStorage?')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('✅ Все данные удалены! Перезагрузите страницу.');
+        location.reload();
+      }
+    }
+
+    function resetDemo() {
+      const demoUsers = [
+        {
+          id: 1,
+          username: 'admin',
+          password: 'admin123',
+          email: 'admin@callanalytics.com',
+          role: 'manager',
+          status: 'active',
+          managerId: null,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          username: 'ivanov',
+          password: 'ivanov123',
+          email: 'ivanov@callanalytics.com',
+          role: 'employee',
+          status: 'active',
+          managerId: 1,
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      localStorage.setItem('users', JSON.stringify(demoUsers));
+      alert('✅ Демо-данные восстановлены!\nЛогины: admin/admin123, ivanov/ivanov123');
+      showUsers();
+    }
+
+    function goToLogin() {
+      window.location.href = 'admin-login.html';
+    }
+
+    // Автоматически показать пользователей при загрузке
+    window.addEventListener('DOMContentLoaded', function() {
+      showUsers();
+      showSession();
+    });
+  </script>
+</body>
+</html>
