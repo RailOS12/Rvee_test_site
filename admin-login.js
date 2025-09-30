@@ -117,8 +117,17 @@ window.addEventListener('DOMContentLoaded', function() {
   const rememberMe = localStorage.getItem('rememberMe');
   
   if (currentUser || rememberMe) {
-    // Если пользователь уже залогинен, перенаправляем на админ-панель
-    window.location.href = 'admin-panel.html';
+    // Если пользователь уже залогинен, перенаправляем в зависимости от роли
+    const userData = JSON.parse(currentUser || rememberMe);
+    
+    if (userData.role === 'manager') {
+      window.location.href = 'manager-dashboard.html';
+    } else if (userData.role === 'employee') {
+      window.location.href = 'employee-dashboard.html';
+    } else {
+      window.location.href = 'admin-panel.html';
+    }
+    return; // Останавливаем дальнейшее выполнение
   }
   
   // Автозаполнение если включено "Запомнить меня"
