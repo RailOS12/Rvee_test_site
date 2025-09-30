@@ -556,19 +556,20 @@ function closeUploadModal() {
 }
 
 // Загрузить аудиозаписи сотрудника
-function loadMyAudio() {
+async function loadMyAudio() {
   const currentUser = checkAuth();
   if (!currentUser) return [];
   
-  const savedAudio = localStorage.getItem('audioRecords');
-  const allAudio = savedAudio ? JSON.parse(savedAudio) : [];
+  if (typeof window.AudioDB !== 'undefined') {
+    return await window.AudioDB.getByEmployee(currentUser.userId);
+  }
   
-  return allAudio.filter(audio => audio.employeeId === currentUser.userId);
+  return [];
 }
 
 // Отрисовать аудиозаписи
-function renderMyAudio() {
-  const audioRecords = loadMyAudio();
+async function renderMyAudio() {
+  const audioRecords = await loadMyAudio();
   const container = document.getElementById('conversationsList');
   
   if (audioRecords.length === 0) {
@@ -617,10 +618,13 @@ function renderMyAudio() {
 }
 
 // Воспроизвести аудио
-function playEmployeeAudio(audioId) {
-  const savedAudio = localStorage.getItem('audioRecords');
-  const allAudio = savedAudio ? JSON.parse(savedAudio) : [];
-  const audio = allAudio.find(a => a.id === audioId);
+async function playEmployeeAudio(audioId) {
+  if (typeof window.AudioDB === 'undefined') {
+    alert('Система аудио не загружена!');
+    return;
+  }
+  
+  const audio = await window.AudioDB.get(audioId);
   
   if (!audio) {
     alert('Запись не найдена!');
@@ -669,7 +673,7 @@ function playEmployeeAudio(audioId) {
 }
 
 // Инициализация
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', async function() {
   const currentUser = checkAuth();
   if (currentUser) {
     document.getElementById('currentUserName').textContent = currentUser.username;
@@ -680,7 +684,7 @@ window.addEventListener('DOMContentLoaded', function() {
     // Загрузка данных
     updateStats();
     renderConversations();
-    renderMyAudio(); // Добавляем аудиозаписи
+    await renderMyAudio(); // Добавляем аудиозаписи (async)
     
     // Установка дат
     const endDate = new Date();

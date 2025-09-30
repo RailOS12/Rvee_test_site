@@ -27,16 +27,14 @@ function logout() {
   }
 }
 
-// Загрузить все аудиозаписи
-function loadAudioRecords() {
-  const savedAudio = localStorage.getItem('audioRecords');
-  return savedAudio ? JSON.parse(savedAudio) : [];
+// Загрузить все аудиозаписи (async)
+async function loadAudioRecords() {
+  return await window.AudioDB.load();
 }
 
-// Сохранить аудиозаписи
-function saveAudioRecords(records) {
-  localStorage.setItem('audioRecords', JSON.stringify(records));
-  console.log('💾 Сохранено аудиозаписей:', records.length);
+// Сохранить аудиозаписи (async)
+async function saveAudioRecords(records) {
+  await window.AudioDB.save(records);
 }
 
 // Получить сотрудников
@@ -53,8 +51,8 @@ function getUserName(userId) {
 }
 
 // Обновить статистику
-function updateStats() {
-  const records = loadAudioRecords();
+async function updateStats() {
+  const records = await loadAudioRecords();
   
   const totalAudio = records.length;
   
@@ -70,8 +68,8 @@ function updateStats() {
 }
 
 // Отрисовать таблицу
-function renderAudioTable() {
-  const records = loadAudioRecords();
+async function renderAudioTable() {
+  const records = await loadAudioRecords();
   const tbody = document.getElementById('audioTableBody');
   
   if (records.length === 0) {
@@ -235,10 +233,8 @@ document.getElementById('uploadAudioForm').addEventListener('submit', async func
     // Получаем длительность
     const duration = await getAudioDuration(audioData);
     
-    // Создаем запись
-    const records = loadAudioRecords();
+    // Создаем запись (без ID - будет автоинкремент)
     const newRecord = {
-      id: records.length > 0 ? Math.max(...records.map(r => r.id)) + 1 : 1,
       employeeId: employeeId,
       fileName: file.name,
       description: description,
@@ -249,12 +245,12 @@ document.getElementById('uploadAudioForm').addEventListener('submit', async func
       audioData: audioData
     };
     
-    records.push(newRecord);
-    saveAudioRecords(records);
+    // Добавляем в IndexedDB
+    await window.AudioDB.add(newRecord);
     
     // Обновить интерфейс
-    updateStats();
-    renderAudioTable();
+    await updateStats();
+    await renderAudioTable();
     closeUploadAudioModal();
     
     showNotification('Аудиозапись успешно загружена!', 'success');
@@ -308,9 +304,8 @@ function getAudioDuration(dataURL) {
 }
 
 // Воспроизвести аудио
-function playAudio(id) {
-  const records = loadAudioRecords();
-  const record = records.find(r => r.id === id);
+async function playAudio(id) {
+  const record = await window.AudioDB.get(id);
   
   if (!record) {
     alert('Запись не найдена!');
@@ -361,9 +356,8 @@ function playAudio(id) {
 }
 
 // Скачать аудио
-function downloadAudio(id) {
-  const records = loadAudioRecords();
-  const record = records.find(r => r.id === id);
+async function downloadAudio(id) {
+  const record = await window.AudioDB.get(id);
   
   if (!record) {
     alert('Запись не найдена!');
@@ -381,17 +375,15 @@ function downloadAudio(id) {
 }
 
 // Удалить аудио
-function deleteAudio(id) {
-  const records = loadAudioRecords();
-  const record = records.find(r => r.id === id);
+async function deleteAudio(id) {
+  const record = await window.AudioDB.get(id);
   
   if (!record) return;
   
   if (confirm(`Удалить запись "${record.fileName}"?`)) {
-    const updated = records.filter(r => r.id !== id);
-    saveAudioRecords(updated);
-    updateStats();
-    renderAudioTable();
+    await window.AudioDB.delete(id);
+    await updateStats();
+    await renderAudioTable();
     showNotification('Запись удалена', 'warning');
   }
 }
