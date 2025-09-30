@@ -1,7 +1,15 @@
-// Инициализация демо-пользователей
+// Инициализация демо-пользователей (только если данных НЕТ вообще)
 function initializeDemoUser() {
   const savedUsers = localStorage.getItem('users');
-  if (!savedUsers) {
+  const initialized = localStorage.getItem('demo_initialized');
+  
+  console.log('🔧 initializeDemoUser вызвана');
+  console.log('   savedUsers:', savedUsers ? 'есть данные' : 'нет данных');
+  console.log('   initialized:', initialized);
+  
+  // Создаем демо-данные ТОЛЬКО если их нет И инициализация не была выполнена
+  if (!savedUsers && !initialized) {
+    console.log('⚠️ СОЗДАНИЕ ДЕМО-ДАННЫХ');
     const demoUsers = [
       {
         id: 1,
@@ -25,6 +33,10 @@ function initializeDemoUser() {
       }
     ];
     localStorage.setItem('users', JSON.stringify(demoUsers));
+    localStorage.setItem('demo_initialized', 'true');
+    console.log('✅ Демо-данные созданы');
+  } else if (savedUsers) {
+    console.log('✅ Данные уже есть, пропускаем инициализацию');
   }
 }
 

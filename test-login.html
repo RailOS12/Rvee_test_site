@@ -171,6 +171,10 @@
     }
 
     function resetDemo() {
+      if (!confirm('⚠️ ЭТО УДАЛИТ ВСЕХ СОЗДАННЫХ ПОЛЬЗОВАТЕЛЕЙ!\n\nВосстановить только демо-данные (admin и ivanov)?\n\nВсе изменения будут потеряны!')) {
+        return;
+      }
+      
       const demoUsers = [
         {
           id: 1,
@@ -195,7 +199,9 @@
       ];
       
       localStorage.setItem('users', JSON.stringify(demoUsers));
-      alert('✅ Демо-данные восстановлены!\nЛогины: admin/admin123, ivanov/ivanov123');
+      localStorage.setItem('demo_initialized', 'true');
+      console.log('⚠️ ДЕМО-ДАННЫЕ ПЕРЕЗАПИСАНЫ! Все пользовательские изменения удалены.');
+      alert('✅ Демо-данные восстановлены!\nЛогины: admin/admin123, ivanov/ivanov123\n\n⚠️ ВСЕ СОЗДАННЫЕ ПОЛЬЗОВАТЕЛИ УДАЛЕНЫ!');
       showUsers();
     }
 
