@@ -555,6 +555,119 @@ function closeUploadModal() {
   document.getElementById('uploadModal').classList.remove('show');
 }
 
+// Загрузить аудиозаписи сотрудника
+function loadMyAudio() {
+  const currentUser = checkAuth();
+  if (!currentUser) return [];
+  
+  const savedAudio = localStorage.getItem('audioRecords');
+  const allAudio = savedAudio ? JSON.parse(savedAudio) : [];
+  
+  return allAudio.filter(audio => audio.employeeId === currentUser.userId);
+}
+
+// Отрисовать аудиозаписи
+function renderMyAudio() {
+  const audioRecords = loadMyAudio();
+  const container = document.getElementById('conversationsList');
+  
+  if (audioRecords.length === 0) {
+    return; // Показываем обычные разговоры
+  }
+  
+  console.log('📼 Найдено аудиозаписей:', audioRecords.length);
+  
+  // Сортировка по дате
+  const sorted = [...audioRecords].sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+  
+  // Добавляем аудио в начало списка
+  const audioHTML = sorted.map(audio => {
+    const uploadDate = new Date(audio.uploadDate);
+    const duration = Math.floor(audio.duration || 0);
+    
+    return `
+      <div class="conversation-item" onclick="playEmployeeAudio(${audio.id})">
+        <div class="conversation-info">
+          <div class="conversation-title" style="display: flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+            ${audio.fileName}
+          </div>
+          <div class="conversation-meta">
+            <span>${formatDate(audio.uploadDate)}</span>
+            <span>•</span>
+            <span>${formatDuration(duration)}</span>
+            ${audio.description ? `<span>•</span><span>${audio.description}</span>` : ''}
+          </div>
+        </div>
+        <div class="conversation-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  const existingHTML = container.innerHTML;
+  container.innerHTML = audioHTML + existingHTML;
+}
+
+// Воспроизвести аудио
+function playEmployeeAudio(audioId) {
+  const savedAudio = localStorage.getItem('audioRecords');
+  const allAudio = savedAudio ? JSON.parse(savedAudio) : [];
+  const audio = allAudio.find(a => a.id === audioId);
+  
+  if (!audio) {
+    alert('Запись не найдена!');
+    return;
+  }
+  
+  // Создаем аудио плеер
+  const audioElement = new Audio(audio.audioData);
+  audioElement.controls = true;
+  
+  // Показываем модальное окно
+  const modal = document.createElement('div');
+  modal.className = 'modal show';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2>${audio.fileName}</h2>
+        <button class="modal-close" onclick="this.closest('.modal').remove()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div style="padding: 24px;">
+        <div style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
+          Дата загрузки: ${formatDate(audio.uploadDate)}<br>
+          Длительность: ${formatDuration(audio.duration)}
+          ${audio.description ? '<br><br>' + audio.description : ''}
+        </div>
+        <div id="audioPlayerContainer"></div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  document.getElementById('audioPlayerContainer').appendChild(audioElement);
+  audioElement.play();
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      audioElement.pause();
+      modal.remove();
+    }
+  });
+}
+
 // Инициализация
 window.addEventListener('DOMContentLoaded', function() {
   const currentUser = checkAuth();
@@ -567,6 +680,7 @@ window.addEventListener('DOMContentLoaded', function() {
     // Загрузка данных
     updateStats();
     renderConversations();
+    renderMyAudio(); // Добавляем аудиозаписи
     
     // Установка дат
     const endDate = new Date();
