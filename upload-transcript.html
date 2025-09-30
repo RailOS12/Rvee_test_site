@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Загрузка транскрибации</title>
+  <link rel="stylesheet" href="admin-styles.css">
+  <style>
+    .upload-container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 24px;
+    }
+    
+    .upload-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    
+    .form-section {
+      margin-bottom: 24px;
+    }
+    
+    .form-section h3 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+    
+    .form-section textarea {
+      width: 100%;
+      min-height: 300px;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      resize: vertical;
+    }
+    
+    .help-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    
+    .example-box {
+      background: rgba(0,0,0,0.3);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+      border-left: 3px solid var(--primary);
+    }
+    
+    .example-box code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: block;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="upload-container">
+    <button class="btn-secondary" onclick="goBack()" style="margin-bottom: 24px;">
+      ← Назад
+    </button>
+    
+    <div class="upload-card">
+      <h1 style="margin: 0 0 8px 0;">Загрузка транскрибации</h1>
+      <p style="color: var(--text-secondary); margin: 0 0 32px 0;">
+        Аудиофайл: <strong id="audioFileName">...</strong>
+      </p>
+      
+      <form id="uploadForm">
+        <div class="form-section">
+          <h3>JSON транскрибация</h3>
+          <p class="help-text">
+            Вставьте JSON с транскрибацией в формате rvee_transcript_1.0
+          </p>
+          <textarea id="transcriptionJSON" placeholder='{"status": "ok", "lang": "ru", "schema_version": "rvee_transcript_1.0", "utterances": [...]}'></textarea>
+          
+          <div class="example-box">
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 8px;">Пример структуры:</strong>
+            <code>{
+  "status": "ok",
+  "lang": "ru",
+  "schema_version": "rvee_transcript_1.0",
+  "utterances": [
+    {
+      "idx": 0,
+      "t_str": "[00:00]",
+      "speaker": "Рекрутер",
+      "text": "Добрый день! Меня зовут..."
+    },
+    {
+      "idx": 1,
+      "t_str": "[00:05]",
+      "speaker": "Кандидат",
+      "text": "Здравствуйте!"
+    }
+  ]
+}</code>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button type="button" class="btn-secondary" onclick="goBack()">Отмена</button>
+          <button type="submit" class="btn-primary">Сохранить транскрибацию</button>
+        </div>
+      </form>
+    </div>
+    
+    <div class="upload-card">
+      <h3 style="margin: 0 0 16px 0;">📝 Инструкция</h3>
+      <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 20px;">
+        <li>Поле <code>status</code> должно быть "ok"</li>
+        <li>Поле <code>lang</code> - язык разговора (ru/en)</li>
+        <li>Поле <code>schema_version</code> должно быть "rvee_transcript_1.0"</li>
+        <li>Массив <code>utterances</code> содержит реплики</li>
+        <li>Каждая реплика имеет:
+          <ul style="margin-top: 8px;">
+            <li><code>idx</code> - порядковый номер</li>
+            <li><code>t_str</code> - временная метка в формате "[MM:SS]"</li>
+            <li><code>speaker</code> - "Рекрутер" или "Кандидат"</li>
+            <li><code>text</code> - текст реплики</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="audio-storage.js"></script>
+  <script>
+    // Получить ID аудио из URL
+    function getAudioId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('audioId') ? parseInt(params.get('audioId')) : null;
+    }
+    
+    // Назад
+    function goBack() {
+      window.location.href = 'audio-manager.html';
+    }
+    
+    // Загрузить информацию об аудио
+    async function loadAudioInfo() {
+      const audioId = getAudioId();
+      
+      if (!audioId) {
+        alert('ID аудиозаписи не указан');
+        goBack();
+        return;
+      }
+      
+      const audio = await window.AudioDB.get(audioId);
+      
+      if (!audio) {
+        alert('Аудиозапись не найдена');
+        goBack();
+        return;
+      }
+      
+      document.getElementById('audioFileName').textContent = audio.fileName;
+      
+      // Если уже есть транскрибация - показать её
+      if (audio.transcription) {
+        document.getElementById('transcriptionJSON').value = JSON.stringify(audio.transcription, null, 2);
+      }
+    }
+    
+    // Сохранить транскрибацию
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const audioId = getAudioId();
+      const jsonText = document.getElementById('transcriptionJSON').value.trim();
+      
+      if (!jsonText) {
+        alert('Введите JSON транскрибации');
+        return;
+      }
+      
+      try {
+        // Парсим JSON
+        const transcription = JSON.parse(jsonText);
+        
+        // Проверяем структуру
+        if (!transcription.utterances || !Array.isArray(transcription.utterances)) {
+          throw new Error('JSON должен содержать массив utterances');
+        }
+        
+        if (transcription.schema_version !== 'rvee_transcript_1.0') {
+          console.warn('Версия схемы не соответствует rvee_transcript_1.0');
+        }
+        
+        // Обновляем запись
+        await window.AudioDB.update(audioId, {
+          transcription: transcription
+        });
+        
+        alert('✅ Транскрибация успешно сохранена!');
+        goBack();
+        
+      } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        alert('❌ Ошибка: ' + error.message);
+      }
+    });
+    
+    // Инициализация
+    window.addEventListener('DOMContentLoaded', loadAudioInfo);
+  </script>
+</body>
+</html>

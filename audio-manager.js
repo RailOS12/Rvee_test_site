@@ -117,9 +117,15 @@ async function renderAudioTable() {
         <td>${size} MB</td>
         <td>
           <div class="action-buttons">
-            <button class="btn-action" onclick="playAudio(${record.id})" title="Прослушать">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            <button class="btn-action" onclick="viewAudioTranscript(${record.id})" title="Просмотр">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button class="btn-action" onclick="editTranscription(${record.id})" title="Транскрибация">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
               </svg>
             </button>
             <button class="btn-action" onclick="downloadAudio(${record.id})" title="Скачать">
@@ -386,6 +392,16 @@ async function deleteAudio(id) {
     await renderAudioTable();
     showNotification('Запись удалена', 'warning');
   }
+}
+
+// Просмотр транскрибации
+function viewAudioTranscript(id) {
+  window.location.href = `conversation-view.html?audioId=${id}`;
+}
+
+// Редактировать транскрибацию
+function editTranscription(id) {
+  window.location.href = `upload-transcript.html?audioId=${id}`;
 }
 
 // Фильтрация
