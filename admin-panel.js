@@ -75,22 +75,31 @@ function renderUsers() {
     return;
   }
   
-  tbody.innerHTML = filteredUsers.map(user => `
-    <tr>
-      <td><span class="user-id">#${user.id}</span></td>
-      <td><span class="user-name">${escapeHtml(user.username)}</span></td>
-      <td>${escapeHtml(user.email)}</td>
-      <td><span class="badge ${user.role}">${getRoleLabel(user.role)}</span></td>
-      <td><span class="badge ${user.status}">${getStatusLabel(user.status)}</span></td>
-      <td><span class="user-date">${formatDate(user.createdAt)}</span></td>
-      <td>
-        <div class="action-buttons">
-          <button class="btn-action" onclick="openEditUserModal(${user.id})">Изменить</button>
-          <button class="btn-action delete" onclick="deleteUser(${user.id})">Удалить</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = filteredUsers.map(user => {
+    const managerInfo = user.role === 'employee' && user.managerId 
+      ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Менеджер: ${getManagerName(user.managerId)}</div>`
+      : '';
+    
+    return `
+      <tr>
+        <td><span class="user-id">#${user.id}</span></td>
+        <td>
+          <span class="user-name">${escapeHtml(user.username)}</span>
+          ${managerInfo}
+        </td>
+        <td>${escapeHtml(user.email)}</td>
+        <td><span class="badge ${user.role}">${getRoleLabel(user.role)}</span></td>
+        <td><span class="badge ${user.status}">${getStatusLabel(user.status)}</span></td>
+        <td><span class="user-date">${formatDate(user.createdAt)}</span></td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-action" onclick="openEditUserModal(${user.id})">Изменить</button>
+            <button class="btn-action delete" onclick="deleteUser(${user.id})">Удалить</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // Вспомогательные функции
@@ -102,11 +111,17 @@ function escapeHtml(text) {
 
 function getRoleLabel(role) {
   const labels = {
-    'admin': 'Администратор',
-    'moderator': 'Модератор',
-    'user': 'Пользователь'
+    'employee': 'Сотрудник',
+    'manager': 'Менеджер'
   };
   return labels[role] || role;
+}
+
+// Получить имя менеджера по ID
+function getManagerName(managerId) {
+  if (!managerId) return '-';
+  const manager = users.find(u => u.id === managerId);
+  return manager ? manager.username : 'Не найден';
 }
 
 function getStatusLabel(status) {
@@ -148,10 +163,52 @@ function filterUsers(filter) {
   renderUsers();
 }
 
+// Заполнить список менеджеров
+function populateManagerSelect(selectId, excludeUserId = null) {
+  const select = document.getElementById(selectId);
+  select.innerHTML = '<option value="">Не назначен</option>';
+  
+  const managers = users.filter(u => u.role === 'manager' && u.id !== excludeUserId);
+  managers.forEach(manager => {
+    const option = document.createElement('option');
+    option.value = manager.id;
+    option.textContent = manager.username;
+    select.appendChild(option);
+  });
+}
+
+// Показать/скрыть поле выбора менеджера при создании
+function toggleManagerSelect() {
+  const role = document.getElementById('userRole').value;
+  const managerGroup = document.getElementById('managerSelectGroup');
+  
+  if (role === 'employee') {
+    managerGroup.style.display = 'block';
+    populateManagerSelect('userManager');
+  } else {
+    managerGroup.style.display = 'none';
+  }
+}
+
+// Показать/скрыть поле выбора менеджера при редактировании
+function toggleEditManagerSelect() {
+  const role = document.getElementById('editRole').value;
+  const managerGroup = document.getElementById('editManagerSelectGroup');
+  
+  if (role === 'employee') {
+    managerGroup.style.display = 'block';
+    const userId = parseInt(document.getElementById('editUserId').value);
+    populateManagerSelect('editManager', userId);
+  } else {
+    managerGroup.style.display = 'none';
+  }
+}
+
 // Открытие модального окна создания пользователя
 function openCreateUserModal() {
   document.getElementById('createUserModal').classList.add('show');
   document.getElementById('createUserForm').reset();
+  toggleManagerSelect(); // Обновить видимость поля менеджера
 }
 
 // Закрытие модального окна создания
@@ -186,6 +243,9 @@ document.getElementById('createUserForm').addEventListener('submit', function(e)
     return;
   }
   
+  // Получаем менеджера (если сотрудник)
+  const managerId = role === 'employee' ? document.getElementById('userManager').value : null;
+  
   // Создаем нового пользователя
   const newUser = {
     id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
@@ -194,6 +254,7 @@ document.getElementById('createUserForm').addEventListener('submit', function(e)
     password,
     role,
     status,
+    managerId: managerId ? parseInt(managerId) : null,
     createdAt: new Date().toISOString()
   };
   
@@ -216,6 +277,13 @@ function openEditUserModal(userId) {
   document.getElementById('editPassword').value = '';
   document.getElementById('editRole').value = user.role;
   document.getElementById('editStatus').value = user.status;
+  
+  // Настроить поле менеджера
+  toggleEditManagerSelect();
+  
+  if (user.role === 'employee' && user.managerId) {
+    document.getElementById('editManager').value = user.managerId;
+  }
   
   document.getElementById('editUserModal').classList.add('show');
 }
@@ -250,11 +318,15 @@ document.getElementById('editUserForm').addEventListener('submit', function(e) {
     return;
   }
   
+  // Получаем менеджера (если сотрудник)
+  const managerId = role === 'employee' ? document.getElementById('editManager').value : null;
+  
   // Обновляем данные
   users[userIndex].username = username;
   users[userIndex].email = email;
   users[userIndex].role = role;
   users[userIndex].status = status;
+  users[userIndex].managerId = managerId ? parseInt(managerId) : null;
   
   // Обновляем пароль только если он введен
   if (password) {
@@ -332,6 +404,17 @@ window.addEventListener('DOMContentLoaded', function() {
   const currentUser = checkAuth();
   if (currentUser) {
     document.getElementById('currentUserName').textContent = currentUser.username;
+    
+    // Найти полные данные пользователя
+    const savedUsers = localStorage.getItem('users');
+    if (savedUsers) {
+      const users = JSON.parse(savedUsers);
+      const fullUser = users.find(u => u.id === currentUser.userId);
+      if (fullUser) {
+        document.getElementById('currentUserRole').textContent = getRoleLabel(fullUser.role);
+      }
+    }
+    
     loadUsers();
   }
 });

@@ -1,4 +1,4 @@
-// Инициализация демо-пользователя
+// Инициализация демо-пользователей
 function initializeDemoUser() {
   const savedUsers = localStorage.getItem('users');
   if (!savedUsers) {
@@ -7,9 +7,20 @@ function initializeDemoUser() {
         id: 1,
         username: 'admin',
         password: 'admin123',
-        email: 'admin@example.com',
-        role: 'admin',
+        email: 'admin@callanalytics.com',
+        role: 'manager',
         status: 'active',
+        managerId: null,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        username: 'ivanov',
+        password: 'ivanov123',
+        email: 'ivanov@callanalytics.com',
+        role: 'employee',
+        status: 'active',
+        managerId: 1,
         createdAt: new Date().toISOString()
       }
     ];
