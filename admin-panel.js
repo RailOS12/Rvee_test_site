@@ -16,27 +16,46 @@ function checkAuth() {
 
 // Загрузка пользователей
 function loadUsers() {
+  console.log('🔄 ВЫЗВАНА loadUsers() - загрузка из localStorage');
+  console.trace('Stack trace - откуда вызвана функция:');
+  
   const savedUsers = localStorage.getItem('users');
   users = savedUsers ? JSON.parse(savedUsers) : [];
   console.log('📂 Загружено пользователей:', users.length, users);
+  
   updateStats();
   renderUsers();
 }
 
 // Сохранение пользователей
 function saveUsers() {
-  console.log('💾 Сохранение пользователей:', users);
+  console.log('💾 Сохранение пользователей (ПЕРЕД записью):', JSON.stringify(users));
+  
   try {
-    localStorage.setItem('users', JSON.stringify(users));
-    console.log('✅ Пользователи сохранены успешно');
+    const dataToSave = JSON.stringify(users);
+    console.log('📝 Строка для сохранения:', dataToSave);
     
-    // Проверяем, что сохранилось
-    const saved = localStorage.getItem('users');
-    console.log('🔍 Проверка сохранения:', JSON.parse(saved));
+    localStorage.setItem('users', dataToSave);
+    console.log('✅ localStorage.setItem() выполнен');
+    
+    // ВАЖНО: читаем напрямую из localStorage, а не из переменной
+    const actualSaved = localStorage.getItem('users');
+    console.log('🔍 ЧТО РЕАЛЬНО В LOCALSTORAGE:', actualSaved);
+    console.log('🔍 Распарсено:', JSON.parse(actualSaved));
+    
+    // Проверяем совпадение
+    if (actualSaved === dataToSave) {
+      console.log('✅ СОВПАДЕНИЕ: данные сохранены правильно!');
+    } else {
+      console.error('❌ НЕ СОВПАДАЕТ! Сохранилось что-то другое!');
+      console.error('Ожидали:', dataToSave);
+      console.error('Получили:', actualSaved);
+    }
   } catch (error) {
     console.error('❌ Ошибка сохранения:', error);
     alert('Ошибка сохранения данных! Проверьте консоль (F12)');
   }
+  
   updateStats();
   renderUsers();
 }
@@ -345,9 +364,19 @@ document.getElementById('editUserForm').addEventListener('submit', function(e) {
     users[userIndex].password = password;
   }
   
+  console.log('⚡ Перед вызовом saveUsers() в editUserForm');
   saveUsers();
+  console.log('⚡ После вызова saveUsers() в editUserForm');
+  
   closeEditUserModal();
   showNotification('Данные пользователя обновлены!', 'success');
+  
+  // Дополнительная проверка через 1 секунду
+  setTimeout(() => {
+    console.log('⏰ Проверка через 1 секунду после сохранения:');
+    const check = localStorage.getItem('users');
+    console.log('Данные в localStorage:', JSON.parse(check));
+  }, 1000);
 });
 
 // Удаление пользователя
