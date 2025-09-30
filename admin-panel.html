@@ -69,13 +69,23 @@
           <h1>Управление пользователями</h1>
           <p class="subtitle">Создавайте и управляйте учетными записями пользователей</p>
         </div>
-        <button class="btn-primary" onclick="openCreateUserModal()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Создать пользователя
-        </button>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn-secondary" onclick="reloadUsers()" title="Перезагрузить данные">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            Обновить
+          </button>
+          <button class="btn-primary" onclick="openCreateUserModal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Создать пользователя
+          </button>
+        </div>
       </header>
 
       <div class="stats-grid">

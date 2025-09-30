@@ -18,13 +18,25 @@ function checkAuth() {
 function loadUsers() {
   const savedUsers = localStorage.getItem('users');
   users = savedUsers ? JSON.parse(savedUsers) : [];
+  console.log('📂 Загружено пользователей:', users.length, users);
   updateStats();
   renderUsers();
 }
 
 // Сохранение пользователей
 function saveUsers() {
-  localStorage.setItem('users', JSON.stringify(users));
+  console.log('💾 Сохранение пользователей:', users);
+  try {
+    localStorage.setItem('users', JSON.stringify(users));
+    console.log('✅ Пользователи сохранены успешно');
+    
+    // Проверяем, что сохранилось
+    const saved = localStorage.getItem('users');
+    console.log('🔍 Проверка сохранения:', JSON.parse(saved));
+  } catch (error) {
+    console.error('❌ Ошибка сохранения:', error);
+    alert('Ошибка сохранения данных! Проверьте консоль (F12)');
+  }
   updateStats();
   renderUsers();
 }
@@ -363,6 +375,13 @@ function logout() {
     localStorage.removeItem('rememberMe');
     window.location.href = 'admin-login.html';
   }
+}
+
+// Перезагрузить пользователей
+function reloadUsers() {
+  console.log('🔄 Принудительная перезагрузка пользователей');
+  loadUsers();
+  showNotification('Данные обновлены из localStorage', 'success');
 }
 
 // Показать уведомление
