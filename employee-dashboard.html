@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Личный кабинет - Сотрудник</title>
+  <link rel="stylesheet" href="admin-styles.css">
+  <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Боковая панель -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <span>Call Analytics</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Мои звонки</span>
+        </a>
+        <a href="#" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          <span>Статистика</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="user-details">
+            <div class="user-name" id="currentUserName">Пользователь</div>
+            <div class="user-role">Сотрудник</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Выход
+        </button>
+      </div>
+    </aside>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+      <header class="content-header">
+        <div>
+          <h1>Мои звонки</h1>
+          <p class="subtitle">Просматривайте статистику и анализ ваших разговоров</p>
+        </div>
+        <button class="btn-primary" onclick="openUploadModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Загрузить разговор
+        </button>
+      </header>
+
+      <!-- Статистика -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="totalCalls">0</div>
+            <div class="stat-label">Всего звонков</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="avgScore">0.0</div>
+            <div class="stat-label">Средний балл</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="todayCalls">0</div>
+            <div class="stat-label">Звонков сегодня</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- График по дням -->
+      <div class="content-card">
+        <div class="card-header">
+          <h3>Звонки по дням</h3>
+          <div class="date-range-selector">
+            <input type="date" id="startDate" class="date-input">
+            <span style="margin: 0 8px;">—</span>
+            <input type="date" id="endDate" class="date-input">
+            <button class="btn-secondary" onclick="filterByDateRange()">Применить</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="callsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Список разговоров -->
+      <div class="content-card">
+        <div class="card-header">
+          <h3>История разговоров</h3>
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all" onclick="filterCalls('all')">Все</button>
+            <button class="filter-btn" data-filter="today" onclick="filterCalls('today')">Сегодня</button>
+            <button class="filter-btn" data-filter="week" onclick="filterCalls('week')">Неделя</button>
+          </div>
+        </div>
+
+        <div class="conversations-list" id="conversationsList">
+          <!-- Будет заполнено через JavaScript -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Модальное окно загрузки -->
+  <div id="uploadModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Загрузить транскрибацию</h2>
+        <button class="modal-close" onclick="closeUploadModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="uploadForm" class="modal-form">
+        <div class="form-group">
+          <label for="conversationTitle">Название разговора</label>
+          <input type="text" id="conversationTitle" placeholder="Например: Звонок кандидату Иванову" required>
+        </div>
+
+        <div class="form-group">
+          <label for="conversationFile">Файл транскрибации (JSON)</label>
+          <input type="file" id="conversationFile" accept=".json,.txt" required>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+            Поддерживаемые форматы: JSON, TXT
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeUploadModal()">Отмена</button>
+          <button type="submit" class="btn-primary">Загрузить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="employee-dashboard.js"></script>
+</body>
+</html>

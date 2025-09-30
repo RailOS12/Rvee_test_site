@@ -84,6 +84,8 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
       userId: user.id,
       username: user.username,
       role: user.role,
+      email: user.email,
+      managerId: user.managerId,
       loginTime: new Date().toISOString()
     };
     
@@ -93,8 +95,14 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
       localStorage.setItem('rememberMe', JSON.stringify(sessionData));
     }
     
-    // Перенаправляем на админ-панель
-    window.location.href = 'admin-panel.html';
+    // Перенаправляем в зависимости от роли
+    if (user.role === 'manager') {
+      window.location.href = 'manager-dashboard.html';
+    } else if (user.role === 'employee') {
+      window.location.href = 'employee-dashboard.html';
+    } else {
+      window.location.href = 'admin-panel.html';
+    }
   } else {
     showError('Неверный логин или пароль');
   }

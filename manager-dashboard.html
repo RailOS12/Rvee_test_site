@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Личный кабинет - Менеджер</title>
+  <link rel="stylesheet" href="admin-styles.css">
+  <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Боковая панель -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <span>Call Analytics</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Обзор команды</span>
+        </a>
+        <a href="admin-panel.html" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>Управление пользователями</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="user-details">
+            <div class="user-name" id="currentUserName">Менеджер</div>
+            <div class="user-role">Менеджер</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Выход
+        </button>
+      </div>
+    </aside>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+      <header class="content-header">
+        <div>
+          <h1>Обзор команды</h1>
+          <p class="subtitle">Мониторинг эффективности сотрудников и анализ разговоров</p>
+        </div>
+      </header>
+
+      <!-- Статистика команды -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="teamSize">0</div>
+            <div class="stat-label">Сотрудников в команде</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="totalCalls">0</div>
+            <div class="stat-label">Всего звонков</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="teamAvgScore">0.0</div>
+            <div class="stat-label">Средний балл команды</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Список сотрудников -->
+      <div class="content-card">
+        <div class="card-header">
+          <h3>Сотрудники и их показатели</h3>
+          <div class="date-range-selector">
+            <input type="date" id="startDate" class="date-input">
+            <span style="margin: 0 8px;">—</span>
+            <input type="date" id="endDate" class="date-input">
+            <button class="btn-secondary" onclick="filterByDateRange()">Применить</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Сотрудник</th>
+                <th>Email</th>
+                <th>Звонков</th>
+                <th>Средний балл</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="employeesTableBody">
+              <!-- Будет заполнено через JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Последние разговоры -->
+      <div class="content-card">
+        <div class="card-header">
+          <h3>Последние разговоры команды</h3>
+          <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterConversations('all')">Все</button>
+            <button class="filter-btn" onclick="filterConversations('today')">Сегодня</button>
+            <button class="filter-btn" onclick="filterConversations('week')">Неделя</button>
+          </div>
+        </div>
+
+        <div class="conversations-list" id="conversationsList">
+          <!-- Будет заполнено через JavaScript -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="manager-dashboard.js"></script>
+</body>
+</html>
