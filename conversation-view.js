@@ -312,6 +312,7 @@ window.addEventListener('DOMContentLoaded', async function() {
     
     // Скрыть оценку для аудио без транскрибации
     const scoreContainer = document.querySelector('.conversation-header-meta div:last-child');
+    
     if (audioRecord.transcription && audioRecord.transcription.utterances) {
       // Есть транскрибация - вычислить среднюю оценку
       const utterances = audioRecord.transcription.utterances;
@@ -319,21 +320,24 @@ window.addEventListener('DOMContentLoaded', async function() {
       
       if (scores.length > 0) {
         const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-        document.getElementById('conversationScore').textContent = avgScore.toFixed(1);
-        
         const scoreElement = document.getElementById('conversationScore');
-        if (avgScore >= 8) {
-          scoreElement.style.color = 'var(--success)';
-        } else if (avgScore >= 6) {
-          scoreElement.style.color = 'var(--warning)';
-        } else {
-          scoreElement.style.color = 'var(--danger)';
+        
+        if (scoreElement) {
+          scoreElement.textContent = avgScore.toFixed(1);
+          
+          if (avgScore >= 8) {
+            scoreElement.style.color = 'var(--success)';
+          } else if (avgScore >= 6) {
+            scoreElement.style.color = 'var(--warning)';
+          } else {
+            scoreElement.style.color = 'var(--danger)';
+          }
         }
       } else {
-        scoreContainer.style.display = 'none';
+        if (scoreContainer) scoreContainer.style.display = 'none';
       }
     } else {
-      scoreContainer.style.display = 'none';
+      if (scoreContainer) scoreContainer.style.display = 'none';
     }
     
     // Установить общее время
