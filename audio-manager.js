@@ -251,8 +251,17 @@ document.getElementById('uploadAudioForm').addEventListener('submit', async func
       audioData: audioData
     };
     
+    console.log('💾 Сохранение аудиозаписи:', {
+      employeeId: newRecord.employeeId,
+      fileName: newRecord.fileName,
+      uploadedBy: newRecord.uploadedBy,
+      currentUserId: currentUser.id,
+      duration: newRecord.duration
+    });
+    
     // Добавляем в IndexedDB
-    await window.AudioDB.add(newRecord);
+    const savedRecord = await window.AudioDB.add(newRecord);
+    console.log('✅ Аудиозапись сохранена с ID:', savedRecord.id);
     
     // Обновить интерфейс
     await updateStats();

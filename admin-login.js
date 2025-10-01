@@ -93,7 +93,8 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     
     // Сохраняем сессию
     const sessionData = {
-      userId: user.id,
+      id: user.id, // Исправлено: используем id вместо userId
+      userId: user.id, // Оставляем для обратной совместимости
       username: user.username,
       role: user.role,
       email: user.email,

@@ -560,10 +560,20 @@ async function loadMyAudio() {
   const currentUser = checkAuth();
   if (!currentUser) return [];
   
+  console.log('🔍 loadMyAudio вызвана для пользователя:', {
+    id: currentUser.id,
+    userId: currentUser.userId,
+    username: currentUser.username,
+    role: currentUser.role
+  });
+  
   if (typeof window.AudioDB !== 'undefined') {
-    return await window.AudioDB.getByEmployee(currentUser.id); // Исправлено: используем currentUser.id
+    const records = await window.AudioDB.getByEmployee(currentUser.id);
+    console.log('📼 Загружено аудиозаписей для сотрудника:', records.length, records);
+    return records;
   }
   
+  console.warn('⚠️ AudioDB не определен');
   return [];
 }
 

@@ -110,10 +110,26 @@ async function addAudioRecordDB(record) {
         console.log('✅ Запись добавлена в IndexedDB, ID:', request.result);
         record.id = request.result; // Обновляем ID автоинкремента
         
-        // Также сохраняем в localStorage как backup
-        const existing = JSON.parse(localStorage.getItem('audioRecords_fallback') || '[]');
-        existing.push(record);
-        localStorage.setItem('audioRecords_fallback', JSON.stringify(existing));
+        // Также сохраняем метаданные в localStorage как backup (БЕЗ audioData)
+        try {
+          const existing = JSON.parse(localStorage.getItem('audioRecords_meta') || '[]');
+          const meta = {
+            id: record.id,
+            employeeId: record.employeeId,
+            fileName: record.fileName,
+            description: record.description,
+            uploadDate: record.uploadDate,
+            uploadedBy: record.uploadedBy,
+            duration: record.duration,
+            size: record.size,
+            hasAudio: true
+          };
+          existing.push(meta);
+          localStorage.setItem('audioRecords_meta', JSON.stringify(existing));
+          console.log('💾 Метаданные сохранены в localStorage');
+        } catch (e) {
+          console.warn('⚠️ Не удалось сохранить метаданные в localStorage:', e);
+        }
         
         resolve(record);
       };
@@ -195,8 +211,29 @@ async function getAudioRecordDB(id) {
 // Получить записи сотрудника
 async function getEmployeeAudioRecordsDB(employeeId) {
   try {
+    console.log('🔍 Запрос записей для employeeId:', employeeId, 'тип:', typeof employeeId);
     const allRecords = await loadAudioRecordsDB();
-    return allRecords.filter(r => r.employeeId === employeeId);
+    console.log('📂 Всего записей в базе:', allRecords.length);
+    
+    if (allRecords.length > 0) {
+      console.log('🔎 Пример записей:', allRecords.map(r => ({
+        id: r.id,
+        employeeId: r.employeeId,
+        employeeIdType: typeof r.employeeId,
+        fileName: r.fileName
+      })));
+    }
+    
+    const filtered = allRecords.filter(r => {
+      const match = r.employeeId == employeeId; // Используем == для нестрогого сравнения
+      if (match) {
+        console.log('✅ Найдено совпадение:', r.fileName, 'employeeId:', r.employeeId);
+      }
+      return match;
+    });
+    
+    console.log('📼 Отфильтровано записей для сотрудника:', filtered.length);
+    return filtered;
   } catch (error) {
     console.error('❌ Ошибка получения записей сотрудника:', error);
     return [];
