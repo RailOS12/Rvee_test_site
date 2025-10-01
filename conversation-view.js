@@ -329,30 +329,56 @@ window.addEventListener('DOMContentLoaded', async function() {
     // Установить общее время
     document.getElementById('totalTime').textContent = formatDuration(audioRecord.duration);
     
-    // Создать аудио элемент
-    audioElement = new Audio(audioRecord.audioData);
-    currentAudioRecord = audioRecord;
-    
-    // Настроить обработчики событий аудио
-    audioElement.addEventListener('timeupdate', () => {
-      currentTimeSeconds = audioElement.currentTime;
-      updateProgress();
-    });
-    
-    audioElement.addEventListener('ended', () => {
-      isPlaying = false;
-      const playIcon = document.querySelector('.play-icon');
-      const pauseIcon = document.querySelector('.pause-icon');
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
-      currentTimeSeconds = 0;
-      updateProgress();
-    });
-    
-    audioElement.addEventListener('error', (e) => {
-      console.error('Ошибка воспроизведения аудио:', e);
-      showNotification('Ошибка воспроизведения аудио', 'error');
-    });
+    // Создать аудио элемент, если есть данные
+    if (audioRecord.audioData) {
+      try {
+        audioElement = new Audio(audioRecord.audioData);
+        currentAudioRecord = audioRecord;
+        
+        // Настроить обработчики событий аудио
+        audioElement.addEventListener('timeupdate', () => {
+          currentTimeSeconds = audioElement.currentTime;
+          updateProgress();
+        });
+        
+        audioElement.addEventListener('ended', () => {
+          isPlaying = false;
+          const playIcon = document.querySelector('.play-icon');
+          const pauseIcon = document.querySelector('.pause-icon');
+          playIcon.style.display = 'block';
+          pauseIcon.style.display = 'none';
+          currentTimeSeconds = 0;
+          updateProgress();
+        });
+        
+        audioElement.addEventListener('error', (e) => {
+          console.error('❌ Ошибка воспроизведения аудио:', e);
+          showNotification('Ошибка воспроизведения аудио', 'error');
+          // Показать уведомление
+          const notice = document.getElementById('audioNotice');
+          if (notice) {
+            notice.style.display = 'flex';
+            document.getElementById('audioNoticeText').textContent = 'Ошибка загрузки аудио';
+          }
+        });
+        
+        console.log('✅ Аудио элемент создан успешно');
+      } catch (error) {
+        console.error('❌ Ошибка создания аудио элемента:', error);
+        const notice = document.getElementById('audioNotice');
+        if (notice) {
+          notice.style.display = 'flex';
+          document.getElementById('audioNoticeText').textContent = 'Аудио-файл поврежден';
+        }
+      }
+    } else {
+      console.warn('⚠️ Нет данных аудио в записи');
+      const notice = document.getElementById('audioNotice');
+      if (notice) {
+        notice.style.display = 'flex';
+        document.getElementById('audioNoticeText').textContent = 'Аудио-файл отсутствует';
+      }
+    }
     
     // Отрисовать транскрибацию (или заглушку)
     const transcriptData = audioRecord.transcription?.utterances || null;
