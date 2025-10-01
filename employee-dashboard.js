@@ -561,7 +561,7 @@ async function loadMyAudio() {
   if (!currentUser) return [];
   
   if (typeof window.AudioDB !== 'undefined') {
-    return await window.AudioDB.getByEmployee(currentUser.userId);
+    return await window.AudioDB.getByEmployee(currentUser.id); // Исправлено: используем currentUser.id
   }
   
   return [];

@@ -126,11 +126,19 @@ function renderTranscript(transcriptData) {
   }).join('');
 }
 
-// Переключить воспроизведение
+// Переменные для аудио
+let audioElement = null;
 let isPlaying = false;
 let currentTimeSeconds = 0;
+let currentAudioRecord = null;
 
+// Переключить воспроизведение
 function togglePlay() {
+  if (!audioElement) {
+    showNotification('Аудио-файл недоступен', 'warning');
+    return;
+  }
+  
   isPlaying = !isPlaying;
   const playIcon = document.querySelector('.play-icon');
   const pauseIcon = document.querySelector('.pause-icon');
@@ -138,42 +146,19 @@ function togglePlay() {
   if (isPlaying) {
     playIcon.style.display = 'none';
     pauseIcon.style.display = 'block';
-    // Здесь была бы логика воспроизведения аудио
-    simulatePlayback();
+    audioElement.play();
   } else {
     playIcon.style.display = 'block';
     pauseIcon.style.display = 'none';
-    // Остановка воспроизведения
-  }
-}
-
-// Симуляция воспроизведения (демо)
-function simulatePlayback() {
-  if (!isPlaying) return;
-  
-  const conversation = loadConversation();
-  if (!conversation) return;
-  
-  const totalDuration = conversation.duration;
-  
-  if (currentTimeSeconds < totalDuration) {
-    currentTimeSeconds += 1;
-    updateProgress();
-    setTimeout(simulatePlayback, 1000);
-  } else {
-    isPlaying = false;
-    togglePlay();
-    currentTimeSeconds = 0;
-    updateProgress();
+    audioElement.pause();
   }
 }
 
 // Обновить прогресс
 function updateProgress() {
-  const conversation = loadConversation();
-  if (!conversation) return;
+  if (!audioElement || !currentAudioRecord) return;
   
-  const percentage = (currentTimeSeconds / conversation.duration) * 100;
+  const percentage = (currentTimeSeconds / currentAudioRecord.duration) * 100;
   
   document.getElementById('currentTime').textContent = formatDuration(currentTimeSeconds);
   document.getElementById('progressFill').style.width = percentage + '%';
@@ -182,15 +167,22 @@ function updateProgress() {
 
 // Перемотать аудио
 function seekAudio(percentage) {
-  const conversation = loadConversation();
-  if (!conversation) return;
+  if (!audioElement || !currentAudioRecord) return;
   
-  currentTimeSeconds = Math.floor((percentage / 100) * conversation.duration);
+  const newTime = (percentage / 100) * currentAudioRecord.duration;
+  audioElement.currentTime = newTime;
+  currentTimeSeconds = newTime;
   updateProgress();
 }
 
 // Перейти к моменту
 function jumpToTime(seconds) {
+  if (!audioElement || !currentAudioRecord) {
+    showNotification('Аудио-файл недоступен', 'warning');
+    return;
+  }
+  
+  audioElement.currentTime = seconds;
   currentTimeSeconds = seconds;
   updateProgress();
   
@@ -336,6 +328,31 @@ window.addEventListener('DOMContentLoaded', async function() {
     
     // Установить общее время
     document.getElementById('totalTime').textContent = formatDuration(audioRecord.duration);
+    
+    // Создать аудио элемент
+    audioElement = new Audio(audioRecord.audioData);
+    currentAudioRecord = audioRecord;
+    
+    // Настроить обработчики событий аудио
+    audioElement.addEventListener('timeupdate', () => {
+      currentTimeSeconds = audioElement.currentTime;
+      updateProgress();
+    });
+    
+    audioElement.addEventListener('ended', () => {
+      isPlaying = false;
+      const playIcon = document.querySelector('.play-icon');
+      const pauseIcon = document.querySelector('.pause-icon');
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+      currentTimeSeconds = 0;
+      updateProgress();
+    });
+    
+    audioElement.addEventListener('error', (e) => {
+      console.error('Ошибка воспроизведения аудио:', e);
+      showNotification('Ошибка воспроизведения аудио', 'error');
+    });
     
     // Отрисовать транскрибацию (или заглушку)
     const transcriptData = audioRecord.transcription?.utterances || null;

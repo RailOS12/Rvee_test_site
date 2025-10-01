@@ -245,7 +245,7 @@ document.getElementById('uploadAudioForm').addEventListener('submit', async func
       fileName: file.name,
       description: description,
       uploadDate: new Date().toISOString(),
-      uploadedBy: currentUser.userId,
+      uploadedBy: currentUser.id, // Исправлено: используем currentUser.id
       duration: Math.floor(duration),
       size: file.size,
       audioData: audioData

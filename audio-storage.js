@@ -81,12 +81,18 @@ async function loadAudioRecordsDB() {
       
       request.onerror = () => {
         console.error('❌ Ошибка загрузки из IndexedDB:', request.error);
-        reject(request.error);
+        // Fallback на localStorage
+        console.log('🔄 Fallback на localStorage...');
+        const fallback = localStorage.getItem('audioRecords_fallback');
+        resolve(fallback ? JSON.parse(fallback) : []);
       };
     });
   } catch (error) {
     console.error('❌ Ошибка доступа к IndexedDB:', error);
-    return [];
+    // Fallback на localStorage
+    console.log('🔄 Fallback на localStorage...');
+    const fallback = localStorage.getItem('audioRecords_fallback');
+    return fallback ? JSON.parse(fallback) : [];
   }
 }
 
@@ -103,17 +109,35 @@ async function addAudioRecordDB(record) {
       request.onsuccess = () => {
         console.log('✅ Запись добавлена в IndexedDB, ID:', request.result);
         record.id = request.result; // Обновляем ID автоинкремента
+        
+        // Также сохраняем в localStorage как backup
+        const existing = JSON.parse(localStorage.getItem('audioRecords_fallback') || '[]');
+        existing.push(record);
+        localStorage.setItem('audioRecords_fallback', JSON.stringify(existing));
+        
         resolve(record);
       };
       
       request.onerror = () => {
         console.error('❌ Ошибка добавления в IndexedDB:', request.error);
-        reject(request.error);
+        // Fallback на localStorage
+        console.log('🔄 Fallback на localStorage...');
+        const existing = JSON.parse(localStorage.getItem('audioRecords_fallback') || '[]');
+        record.id = existing.length > 0 ? Math.max(...existing.map(r => r.id)) + 1 : 1;
+        existing.push(record);
+        localStorage.setItem('audioRecords_fallback', JSON.stringify(existing));
+        resolve(record);
       };
     });
   } catch (error) {
     console.error('❌ Ошибка добавления записи:', error);
-    throw error;
+    // Fallback на localStorage
+    console.log('🔄 Fallback на localStorage...');
+    const existing = JSON.parse(localStorage.getItem('audioRecords_fallback') || '[]');
+    record.id = existing.length > 0 ? Math.max(...existing.map(r => r.id)) + 1 : 1;
+    existing.push(record);
+    localStorage.setItem('audioRecords_fallback', JSON.stringify(existing));
+    return record;
   }
 }
 
