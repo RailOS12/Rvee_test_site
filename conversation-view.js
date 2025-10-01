@@ -287,6 +287,7 @@ window.addEventListener('DOMContentLoaded', async function() {
   
   // Если это аудиозапись
   if (audioId) {
+    console.log('🎵 Загрузка аудиозаписи с ID:', audioId);
     const audioRecord = await loadAudioRecord(audioId);
     
     if (!audioRecord) {
@@ -294,6 +295,15 @@ window.addEventListener('DOMContentLoaded', async function() {
       goBack();
       return;
     }
+    
+    console.log('📼 Аудиозапись загружена:', {
+      id: audioRecord.id,
+      fileName: audioRecord.fileName,
+      duration: audioRecord.duration,
+      hasAudioData: !!audioRecord.audioData,
+      audioDataLength: audioRecord.audioData ? audioRecord.audioData.length : 0,
+      audioDataStart: audioRecord.audioData ? audioRecord.audioData.substring(0, 50) : 'НЕТ'
+    });
     
     // Заполнить заголовок
     document.getElementById('conversationTitle').textContent = audioRecord.fileName;
@@ -330,10 +340,14 @@ window.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('totalTime').textContent = formatDuration(audioRecord.duration);
     
     // Создать аудио элемент, если есть данные
+    console.log('🔧 Проверка audioData:', audioRecord.audioData ? 'ЕСТЬ' : 'НЕТ');
+    
     if (audioRecord.audioData) {
+      console.log('🎧 Попытка создать Audio элемент...');
       try {
         audioElement = new Audio(audioRecord.audioData);
         currentAudioRecord = audioRecord;
+        console.log('✅ new Audio() выполнен успешно');
         
         // Настроить обработчики событий аудио
         audioElement.addEventListener('timeupdate', () => {
@@ -351,24 +365,35 @@ window.addEventListener('DOMContentLoaded', async function() {
           updateProgress();
         });
         
+        audioElement.addEventListener('loadedmetadata', () => {
+          console.log('✅ Аудио метаданные загружены, длительность:', audioElement.duration);
+        });
+        
+        audioElement.addEventListener('canplay', () => {
+          console.log('✅ Аудио готово к воспроизведению');
+        });
+        
         audioElement.addEventListener('error', (e) => {
           console.error('❌ Ошибка воспроизведения аудио:', e);
+          console.error('   error.code:', audioElement.error ? audioElement.error.code : 'undefined');
+          console.error('   error.message:', audioElement.error ? audioElement.error.message : 'undefined');
           showNotification('Ошибка воспроизведения аудио', 'error');
           // Показать уведомление
           const notice = document.getElementById('audioNotice');
           if (notice) {
             notice.style.display = 'flex';
-            document.getElementById('audioNoticeText').textContent = 'Ошибка загрузки аудио';
+            document.getElementById('audioNoticeText').textContent = 'Ошибка загрузки аудио: ' + (audioElement.error ? audioElement.error.message : 'неизвестная ошибка');
           }
         });
         
-        console.log('✅ Аудио элемент создан успешно');
+        console.log('✅ Аудио элемент создан и обработчики установлены');
       } catch (error) {
         console.error('❌ Ошибка создания аудио элемента:', error);
+        console.error('   Стек:', error.stack);
         const notice = document.getElementById('audioNotice');
         if (notice) {
           notice.style.display = 'flex';
-          document.getElementById('audioNoticeText').textContent = 'Аудио-файл поврежден';
+          document.getElementById('audioNoticeText').textContent = 'Аудио-файл поврежден: ' + error.message;
         }
       }
     } else {
