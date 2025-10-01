@@ -9,33 +9,35 @@
 </head>
 <body>
   <div class="conversation-view-container">
-    <!-- Шапка -->
-    <header class="conversation-header">
-      <button class="btn-back" onclick="goBack()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Назад
-      </button>
-      
-      <div class="conversation-header-info">
-        <h1 id="conversationTitle">Загрузка...</h1>
-        <div class="conversation-header-meta">
-          <span id="conversationDate"></span>
-          <span>•</span>
-          <span id="conversationDuration"></span>
+    <!-- Закрепленный блок: заголовок + плеер -->
+    <div class="sticky-header-wrapper">
+      <!-- Шапка -->
+      <header class="conversation-header">
+        <button class="btn-back" onclick="goBack()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Назад
+        </button>
+        
+        <div class="conversation-header-info">
+          <h1 id="conversationTitle">Загрузка...</h1>
+          <div class="conversation-header-meta">
+            <span id="conversationDate"></span>
+            <span>•</span>
+            <span id="conversationDuration"></span>
+          </div>
         </div>
-      </div>
-      
-      <div class="conversation-header-score">
-        <div class="score-label">Общий балл</div>
-        <div class="score-value" id="conversationScore">0.0</div>
-      </div>
-    </header>
+        
+        <div class="conversation-header-score">
+          <div class="score-label">Общий балл</div>
+          <div class="score-value" id="conversationScore">0.0</div>
+        </div>
+      </header>
 
-    <!-- Аудио плеер (заглушка) -->
-    <div class="audio-player">
+      <!-- Аудио плеер (заглушка) -->
+      <div class="audio-player">
       <div class="audio-controls">
         <button class="btn-play" id="playButton" onclick="togglePlay()">
           <svg class="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -89,6 +91,8 @@
         <span id="audioNoticeText">Аудио-файл недоступен</span>
       </div>
     </div>
+    </div>
+    <!-- Конец закрепленного блока -->
 
     <!-- Транскрибация -->
     <div class="transcript-container">

@@ -111,6 +111,14 @@
   padding-bottom: 40px;
 }
 
+/* Обертка для закрепленного заголовка и плеера */
+.sticky-header-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--dark-secondary);
+}
+
 .conversation-header {
   background: var(--dark-secondary);
   border-bottom: 1px solid var(--border);
@@ -118,9 +126,6 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  position: sticky;
-  top: 0;
-  z-index: 102;
 }
 
 .btn-back {
@@ -177,9 +182,6 @@
 
 /* Аудио плеер */
 .audio-player {
-  position: sticky;
-  top: 80px;
-  z-index: 101;
   background: var(--dark-secondary);
   border-bottom: 1px solid var(--border);
   padding: 20px 32px;
