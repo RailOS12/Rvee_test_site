@@ -16,7 +16,7 @@ function initializeDemoUser() {
         username: 'admin',
         password: 'admin123',
         email: 'admin@callanalytics.com',
-        role: 'manager',
+        role: 'admin', // Изменено на admin
         status: 'active',
         managerId: null,
         createdAt: new Date().toISOString()
@@ -109,7 +109,9 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     }
     
     // Перенаправляем в зависимости от роли
-    if (user.role === 'manager') {
+    if (user.role === 'admin') {
+      window.location.href = 'admin-panel.html';
+    } else if (user.role === 'manager') {
       window.location.href = 'manager-dashboard.html';
     } else if (user.role === 'employee') {
       window.location.href = 'employee-dashboard.html';
@@ -133,7 +135,9 @@ window.addEventListener('DOMContentLoaded', function() {
     // Если пользователь уже залогинен, перенаправляем в зависимости от роли
     const userData = JSON.parse(currentUser || rememberMe);
     
-    if (userData.role === 'manager') {
+    if (userData.role === 'admin') {
+      window.location.href = 'admin-panel.html';
+    } else if (userData.role === 'manager') {
       window.location.href = 'manager-dashboard.html';
     } else if (userData.role === 'employee') {
       window.location.href = 'employee-dashboard.html';

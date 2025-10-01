@@ -9,8 +9,8 @@ function checkAuth() {
   
   const user = JSON.parse(currentUser);
   
-  // Проверка роли (только менеджеры)
-  if (user.role !== 'manager') {
+  // Проверка роли (админ или менеджер)
+  if (user.role !== 'admin' && user.role !== 'manager') {
     window.location.href = 'admin-login.html';
     return null;
   }
@@ -69,6 +69,7 @@ async function updateStats() {
 
 // Отрисовать таблицу
 async function renderAudioTable() {
+  const currentUser = checkAuth(); // Получаем текущего пользователя
   const records = await loadAudioRecords();
   const tbody = document.getElementById('audioTableBody');
   
@@ -123,11 +124,13 @@ async function renderAudioTable() {
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
+            ${currentUser && currentUser.role === 'admin' ? `
             <button class="btn-action" onclick="editTranscription(${record.id})" title="Транскрибация">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
               </svg>
             </button>
+            ` : ''}
             <button class="btn-action" onclick="downloadAudio(${record.id})" title="Скачать">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>

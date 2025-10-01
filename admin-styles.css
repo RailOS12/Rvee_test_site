@@ -625,6 +625,11 @@ body {
   display: inline-block;
 }
 
+.badge.admin {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
 .badge.manager {
   background: rgba(79, 70, 229, 0.2);
   color: var(--primary-light);

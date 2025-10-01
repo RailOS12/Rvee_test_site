@@ -138,6 +138,27 @@
 
   <script src="audio-storage.js"></script>
   <script>
+    // Проверка доступа (только для admin)
+    function checkAccess() {
+      const currentUser = sessionStorage.getItem('currentUser') || localStorage.getItem('rememberMe');
+      
+      if (!currentUser) {
+        alert('Требуется авторизация');
+        window.location.href = 'admin-login.html';
+        return false;
+      }
+      
+      const user = JSON.parse(currentUser);
+      
+      if (user.role !== 'admin') {
+        alert('Доступ запрещен! Только администраторы могут загружать транскрибации.');
+        window.location.href = 'audio-manager.html';
+        return false;
+      }
+      
+      return true;
+    }
+    
     // Получить ID аудио из URL
     function getAudioId() {
       const params = new URLSearchParams(window.location.search);
@@ -215,7 +236,11 @@
     });
     
     // Инициализация
-    window.addEventListener('DOMContentLoaded', loadAudioInfo);
+    window.addEventListener('DOMContentLoaded', function() {
+      if (checkAccess()) {
+        loadAudioInfo();
+      }
+    });
   </script>
 </body>
 </html>

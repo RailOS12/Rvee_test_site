@@ -142,8 +142,9 @@ function escapeHtml(text) {
 
 function getRoleLabel(role) {
   const labels = {
-    'employee': 'Сотрудник',
-    'manager': 'Менеджер'
+    'admin': 'Администратор',
+    'manager': 'Менеджер',
+    'employee': 'Сотрудник'
   };
   return labels[role] || role;
 }
