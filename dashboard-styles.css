@@ -177,6 +177,9 @@
 
 /* Аудио плеер */
 .audio-player {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: var(--dark-secondary);
   border-bottom: 1px solid var(--border);
   padding: 20px 32px;

@@ -31,7 +31,7 @@ async function loadAudioRecord(audioId) {
 // Форматировать длительность
 function formatDuration(seconds) {
   const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+  const secs = Math.floor(seconds % 60); // Округляем секунды до целого числа
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
