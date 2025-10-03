@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление транскрибациями - Call Analytics</title>
+  <link rel="stylesheet" href="admin-styles.css">
+  <link rel="stylesheet" href="dashboard-styles.css">
+  <style>
+    .transcription-status {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .level-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .level-badge.uploaded {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+    
+    .level-badge.missing {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+    
+    .json-preview {
+      background: #1a1d24;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    
+    .upload-zone {
+      border: 2px dashed rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    
+    .upload-zone.dragover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .json-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .json-tab {
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+    
+    .json-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .json-tab:hover {
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Боковая панель -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <span>Call Analytics</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="manager-dashboard.html" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Обзор команды</span>
+        </a>
+        <a href="audio-manager.html" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+          <span>Аудиозаписи</span>
+        </a>
+        <a href="transcription-manager.html" class="nav-item active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>Транскрибации</span>
+        </a>
+        <a href="admin-panel.html" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>Пользователи</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="user-details">
+            <div class="user-name" id="currentUserName">Администратор</div>
+            <div class="user-role">Администратор</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Выход
+        </button>
+      </div>
+    </aside>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+      <header class="content-header">
+        <div>
+          <h1>Управление транскрибациями</h1>
+          <p class="subtitle">Загрузка и привязка транскрибаций к аудиозаписям</p>
+        </div>
+      </header>
+
+      <!-- Статистика -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="totalAudio">0</div>
+            <div class="stat-label">Всего аудиозаписей</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="level1Count">0</div>
+            <div class="stat-label">Уровень 1 загружен</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="level2Count">0</div>
+            <div class="stat-label">Уровень 2 загружен</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Список аудио с транскрибациями -->
+      <div class="content-card">
+        <div class="card-header">
+          <h3>Аудиозаписи и их транскрибации</h3>
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all" onclick="filterAudio('all')">Все</button>
+            <button class="filter-btn" data-filter="missing" onclick="filterAudio('missing')">Без транскрибаций</button>
+            <button class="filter-btn" data-filter="partial" onclick="filterAudio('partial')">Частично</button>
+            <button class="filter-btn" data-filter="complete" onclick="filterAudio('complete')">Полностью</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Название файла</th>
+                <th>Сотрудник</th>
+                <th>Статус транскрибаций</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="audioTableBody">
+              <!-- Будет заполнено через JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Модальное окно загрузки транскрибаций -->
+  <div id="uploadTranscriptionModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h2>Загрузить транскрибацию</h2>
+        <button class="modal-close" onclick="closeUploadTranscriptionModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-form">
+        <div class="form-group">
+          <label>Аудиозапись</label>
+          <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 14px;">
+            <strong id="modalAudioName">-</strong>
+            <div style="margin-top: 4px; font-size: 13px; color: var(--text-secondary);">
+              Сотрудник: <span id="modalEmployeeName">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Вкладки для выбора уровня -->
+        <div class="json-tabs">
+          <button class="json-tab active" data-level="1" onclick="switchLevel(1)">
+            Уровень 1 (текст + тайминги)
+          </button>
+          <button class="json-tab" data-level="2" onclick="switchLevel(2)">
+            Уровень 2 (с ролями)
+          </button>
+        </div>
+
+        <!-- Уровень 1 -->
+        <div id="level1Content" class="level-content">
+          <div class="form-group">
+            <label for="jsonFile1">JSON файл (Уровень 1)</label>
+            <div class="upload-zone" id="dropZone1" onclick="document.getElementById('jsonFile1').click()">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 12px; opacity: 0.5;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <div style="font-size: 14px; color: var(--text-secondary);">
+                Нажмите или перетащите JSON файл сюда
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                Формат: массив с полями text, start_time, end_time
+              </div>
+            </div>
+            <input type="file" id="jsonFile1" accept=".json,application/json" style="display: none;">
+          </div>
+
+          <div class="form-group">
+            <label>Или вставьте JSON напрямую</label>
+            <textarea id="jsonText1" rows="10" placeholder='[
+  {
+    "text": "текст транскрибации",
+    "start_time": 0.39,
+    "end_time": 40.26
+  }
+]' style="font-family: 'Courier New', monospace; font-size: 13px;"></textarea>
+          </div>
+
+          <div id="jsonPreview1" class="json-preview" style="display: none;"></div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeUploadTranscriptionModal()">Отмена</button>
+            <button type="button" class="btn-primary" onclick="uploadTranscriptionLevel1()">Загрузить уровень 1</button>
+          </div>
+        </div>
+
+        <!-- Уровень 2 -->
+        <div id="level2Content" class="level-content" style="display: none;">
+          <div class="form-group">
+            <label for="jsonFile2">JSON файл (Уровень 2)</label>
+            <div class="upload-zone" id="dropZone2" onclick="document.getElementById('jsonFile2').click()">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 12px; opacity: 0.5;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <div style="font-size: 14px; color: var(--text-secondary);">
+                Нажмите или перетащите JSON файл сюда
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                Формат: объект с полями status, lang, schema_version, utterances
+              </div>
+            </div>
+            <input type="file" id="jsonFile2" accept=".json,application/json" style="display: none;">
+          </div>
+
+          <div class="form-group">
+            <label>Или вставьте JSON напрямую</label>
+            <textarea id="jsonText2" rows="10" placeholder='{
+  "status": "ok",
+  "lang": "ru",
+  "schema_version": "rvee_transcript_1.0",
+  "utterances": [
+    {
+      "idx": 0,
+      "t_str": "[00:00]",
+      "speaker": "Рекрутер",
+      "text": "Здравствуйте!"
+    }
+  ]
+}' style="font-family: 'Courier New', monospace; font-size: 13px;"></textarea>
+          </div>
+
+          <div id="jsonPreview2" class="json-preview" style="display: none;"></div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeUploadTranscriptionModal()">Отмена</button>
+            <button type="button" class="btn-primary" onclick="uploadTranscriptionLevel2()">Загрузить уровень 2</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="audio-storage.js"></script>
+  <script src="transcription-manager.js"></script>
+</body>
+</html>
+

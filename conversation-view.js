@@ -313,8 +313,59 @@ window.addEventListener('DOMContentLoaded', async function() {
     // Скрыть оценку для аудио без транскрибации
     const scoreContainer = document.querySelector('.conversation-header-meta div:last-child');
     
-    if (audioRecord.transcription && audioRecord.transcription.utterances) {
-      // Есть транскрибация - вычислить среднюю оценку
+    // Приоритет: уровень 2 (с ролями) -> уровень 1 (без ролей) -> старый формат
+    let transcriptToRender = null;
+    
+    if (audioRecord.transcription_level2 && audioRecord.transcription_level2.utterances) {
+      // Уровень 2 - полная транскрибация с ролями
+      console.log('✅ Найдена транскрибация уровня 2');
+      const utterances = audioRecord.transcription_level2.utterances;
+      const scores = utterances.filter(u => u.score !== null && u.score !== undefined).map(u => u.score);
+      
+      if (scores.length > 0) {
+        const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const scoreElement = document.getElementById('conversationScore');
+        
+        if (scoreElement) {
+          scoreElement.textContent = avgScore.toFixed(1);
+          
+          if (avgScore >= 8) {
+            scoreElement.style.color = 'var(--success)';
+          } else if (avgScore >= 6) {
+            scoreElement.style.color = 'var(--warning)';
+          } else {
+            scoreElement.style.color = 'var(--danger)';
+          }
+        }
+      } else {
+        if (scoreContainer) scoreContainer.style.display = 'none';
+      }
+      
+      transcriptToRender = utterances;
+    } else if (audioRecord.transcription_level1 && Array.isArray(audioRecord.transcription_level1)) {
+      // Уровень 1 - только текст с таймингами, конвертируем в формат для отображения
+      console.log('✅ Найдена транскрибация уровня 1, конвертирую...');
+      if (scoreContainer) scoreContainer.style.display = 'none';
+      
+      // Преобразуем формат уровня 1 в utterances
+      transcriptToRender = audioRecord.transcription_level1.map((item, idx) => {
+        const minutes = Math.floor(item.start_time / 60);
+        const seconds = Math.floor(item.start_time % 60);
+        const t_str = `[${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}]`;
+        
+        return {
+          idx: idx,
+          t_str: t_str,
+          speaker: 'Неизвестно', // Нет информации о спикере в уровне 1
+          text: item.text,
+          timestamp: item.start_time,
+          score: null,
+          comment: null
+        };
+      });
+    } else if (audioRecord.transcription && audioRecord.transcription.utterances) {
+      // Старый формат (для обратной совместимости)
+      console.log('ℹ️ Найдена транскрибация старого формата');
       const utterances = audioRecord.transcription.utterances;
       const scores = utterances.filter(u => u.score !== null && u.score !== undefined).map(u => u.score);
       
@@ -336,7 +387,11 @@ window.addEventListener('DOMContentLoaded', async function() {
       } else {
         if (scoreContainer) scoreContainer.style.display = 'none';
       }
+      
+      transcriptToRender = utterances;
     } else {
+      // Нет транскрибации
+      console.log('⚠️ Транскрибация не найдена');
       if (scoreContainer) scoreContainer.style.display = 'none';
     }
     
@@ -410,8 +465,7 @@ window.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Отрисовать транскрибацию (или заглушку)
-    const transcriptData = audioRecord.transcription?.utterances || null;
-    renderTranscript(transcriptData);
+    renderTranscript(transcriptToRender);
     
     return;
   }

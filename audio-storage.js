@@ -29,6 +29,12 @@ function openDatabase() {
         objectStore.createIndex('uploadDate', 'uploadDate', { unique: false });
         console.log('✅ Создано хранилище IndexedDB');
       }
+      
+      // Добавляем поддержку транскрибаций (версионирование при необходимости)
+      // Структура записи теперь включает:
+      // - transcription_level1: массив с текстом и таймингами (без ролей)
+      // - transcription_level2: объект с utterances (с ролями)
+      // - transcription_status: { level1: bool, level2: bool }
     };
   });
 }
