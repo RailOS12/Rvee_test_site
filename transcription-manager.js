@@ -14,10 +14,10 @@ function checkAccess() {
 
   const currentUser = JSON.parse(sessionData);
   
-  // Доступ только для админов
-  if (currentUser.role !== 'admin') {
-    alert('Доступ запрещен. Эта страница доступна только администраторам.');
-    window.location.href = currentUser.role === 'manager' ? 'manager-dashboard.html' : 'employee-dashboard.html';
+  // Доступ для админов и менеджеров
+  if (currentUser.role !== 'admin' && currentUser.role !== 'manager') {
+    alert('Доступ запрещен. Эта страница доступна только администраторам и менеджерам.');
+    window.location.href = 'employee-dashboard.html';
     return null;
   }
 
